@@ -1,7 +1,7 @@
 name: Compile SwarmBot
 
 on:
-  workflow_dispatch: # Lubab sul vajutada käsitsi rohelist "Run workflow" nuppu
+  workflow_dispatch: # Käivitad käsitsi Actions alt rohelise nupuga
 
 jobs:
   build:
@@ -11,23 +11,24 @@ jobs:
     - name: Tõmba kood GitHubist
       uses: actions/checkout@v4
 
-    - name: Paigalda uusim stabiilne Rust
-      uses: dtolnay/rust-toolchain@stable
+    - name: Paigalda Rust (v1.75.0)
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: 1.75.0 # See versioon toetab unikaalset koodi ideaalselt
 
     - name: Jõuga reeglite muutmine (Force Allow)
       run: |
-        # Asendame koodis ja seadetes kõik "deny" käsitlemised lubadega (allow)
         sed -i 's/#\[deny/#\[allow/g' src/main.rs || true
         sed -i 's/#\!\[deny/#\!\[allow/g' src/main.rs || true
         sed -i 's/deny =/allow =/g' Cargo.toml || true
 
-    - name: Ehita fail (Ignoreeri hoiatusi)
+    - name: Ehita fail (Õige nimega)
       run: |
-        # RUSTFLAGS tagab, et ühtegi koodi iluviga ei loeta kriitiliseks
-        RUSTFLAGS="-A warnings" cargo build --release --bin swarmbot-cli
+        # Muutsime nime 'swarmbot-cli' -> 'swarm-bot'
+        RUSTFLAGS="-A warnings" cargo build --release --bin swarm-bot
 
     - name: Laadi valmis fail üles
       uses: actions/upload-artifact@v4
       with:
         name: swarmbot-linux-executable
-        path: target/release/swarmbot-cli
+        path: target/release/swarm-bot
